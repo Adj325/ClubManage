@@ -1,0 +1,1603 @@
+<html>
+<head>
+    <title>活动安排(粗糙)</title>
+	<meta charset="utf-8">
+    <link href="./bootstrap/css/bootstrap.min.css" type="text/css" rel="stylesheet">
+</head>
+<body>
+
+<div class="container center-block">
+	<h1>活动安排</h1>
+    <div id="man_act">
+        <div id="man_act_left">
+            <div>
+
+                <script>
+
+                    manActCurDay = 1;
+                    manActCurActId = '';
+                    manActCurActData = {};
+                    // 最近活动_显示已选择活动的阶段设置
+                    function manAct_displayPartSet() {
+                        // 更新已选的活动id
+                        manAct_getSelectedActId();
+                        if (manActCurActId == undefined){
+
+                            $('#infoBox').show();
+                            $('#infoContent').html('提示: 最近没有活动!');
+                            return;
+                        }
+                        // 隐藏活动选框
+                        $('#selectManAct').hide();
+                        // 设置活动名
+                        $('#manActName').html(manActDatas[manActCurActId].name);
+
+                        // 显示阶段设置
+                        $('#manActSetPart').show();
+                        // 活动目前天数
+                        manActCurDay = 0;
+
+                        manAct_SetNextDay();
+                    }
+                    // 最近活动_得到用户选择的阶段数
+                    function manAct_getPartNum() {
+                        return parseInt($("#manAct_partNums").find("option:selected").val());
+                    }
+                    // 最近活动_得到用户选择的单双周
+                    function manAct_getWeekType() {
+                        return parseInt($("#manAct_partWeekType").find("option:selected").val());
+                    }
+                    // 最近活动_根据阶段数显示时间tr
+                    function manAct_changePartTimeDiv() {
+                        var partNums = manAct_getPartNum();
+                        for(var i=0; i <= partNums; i++){
+                            $('#'+i+'_partTime').show();
+                        }
+                        for(var i=partNums+1; i <= 10; i++){
+                            $('#'+i+'_partTime').hide();
+                        }
+                    }
+                    // 得到阶段的起始或结束时间
+                    function manAct_getPartTime(partId, type) {
+                        var h = $('#'+partId+'_partTime'+type+'Hour').find("option:selected").val();
+                        var m = $('#'+partId+'_partTime'+type+'Mintue').find("option:selected").val();
+                        return parseInt(h)*60+parseInt(m);
+                    }
+                    // 得到阶段的起始或结束时间 11:00
+                    function manAct_getPartDateTime(partId, type) {
+                        var h = $('#'+partId+'_partTime'+type+'Hour').find("option:selected").val();
+                        var m = $('#'+partId+'_partTime'+type+'Mintue').find("option:selected").val();
+                        return h+':'+m;
+                    }
+                    // 最近活动_检测时间
+                    function manAct_isRightTime(begId, endId) {
+                        var begTime = manAct_getPartTime(begId, 'Begin');
+                        var endTime = manAct_getPartTime(endId, 'End');
+						console.log(begId, begTime);
+						console.log(endId, endTime);
+                        if(begTime == undefined){
+                            $('#infoBox').show();
+                            $('#infoContent').html('提示: 第'+begId+'阶段的起始时间获取错误!');
+                            return false;
+                        }
+                        if(endTime == undefined){
+                            $('#infoBox').show();
+                            $('#infoContent').html('提示: 第'+endId+'阶段的结束时间获取错误!');
+                            return false;
+                        }
+                        if(begId == endId && begTime >= endTime){
+                            $('#infoBox').show();
+                            $('#infoContent').html('提示: 第'+begId+'阶段的结束时间 >= 起始时间!');
+                            return false;
+                        }else if( endId+1 == begId && endTime > begTime ){
+                            $('#infoBox').show();
+                            $('#infoContent').html('提示: 第'+endId+'阶段的结束时间 > 第'+begId+'阶段的起始时间!');
+                            return false;
+                        }
+                        return true;
+                    }
+					
+
+                    // 最近活动_填写下个阶段_ajax向服务器提交当前阶段的信息
+                    function manAct_SetNextDay(){
+                        var partNums = manAct_getPartNum();
+						console.log('共'+partNums+'阶段');
+                        // 不是默认
+                        if(manActCurDay != 0){
+                            // 检测阶段数
+                            if(partNums == 0){
+                                $('#infoBox').show();
+                                $('#infoContent').html('警告: 阶段数不能为0!');
+                                return;
+                            }
+                            /*
+                             manActCurActData = {
+                             1:{'阶段1':{'beg':'', 'end':'', 'worker':[]}}
+                             }
+                             */
+                            // 检测时间 并 保存数据
+                            manActCurActData[manActCurDay] = {};
+                            for(var i=1; i <= partNums; i++){
+                                if(i-1 >= 1)
+                                    if(!manAct_isRightTime(i, i-1))
+                                        return;
+                                if(!manAct_isRightTime(i, i))
+                                    return;
+
+                                // ajax向服务器提交当前阶段的信息
+
+                                // 阶段名, 阶段数, 阶段起始/结束时间, 阶段工作人员
+                                manActCurActData[manActCurDay]['阶段'+i] = {};
+                                manActCurActData[manActCurDay]['阶段数'] = partNums;
+                                manActCurActData[manActCurDay]['星期几'] = parseInt($('#dayOfWeek').find("option:selected").val());
+                                manActCurActData[manActCurDay]['单双周'] = manAct_getWeekType();
+                                // 分钟
+                                manActCurActData[manActCurDay]['阶段'+i]['beg'] = manAct_getPartTime(i, 'Begin');
+                                manActCurActData[manActCurDay]['阶段'+i]['end'] = manAct_getPartTime(i, 'End');
+                                // 时间格式
+                                manActCurActData[manActCurDay]['阶段'+i]['begDate'] = manAct_getPartDateTime(i, 'Begin');
+                                manActCurActData[manActCurDay]['阶段'+i]['endDate'] = manAct_getPartDateTime(i, 'End');
+                                // 正式人员默认为空
+                                manActCurActData[manActCurDay]['阶段'+i]['off'] = [];
+                                manActCurActData[manActCurDay]['阶段'+i]['can'] = [];
+                            }
+                        }
+
+ 
+						// 开始安排人员
+						// 隐藏阶段设置
+						$('#manActSetPart').hide();
+						// 筛选人员
+						makeCandiate();
+						// 显示阶段人员安排
+						manAct_display();
+
+                    }
+					function m2h(m) {
+						return parseInt(m/60)+':'+m%60;
+					}
+					
+					function makeCandiate(){
+						var dayOfWeek = manActCurActData[manActCurDay]['星期几'];
+						var typeOfWeek = manActCurActData[manActCurDay]['单双周'];
+						// 遍历所有工作阶段
+						for(var workPart = 1; workPart <= manActCurActData[1]['阶段数']; workPart++) {
+							var begTimeM = manActCurActData[1]['阶段'+workPart]['beg'];
+							var endTimeM = manActCurActData[1]['阶段'+workPart]['end'];
+							// 遍历工作人员
+							for(var i = 0; i < data.length; i++) {
+								var m = data[i];
+								
+								// 遍历该天空闲时间
+								for(var partOfDay_i = 0 ; partOfDay_i < m.free[typeOfWeek][dayOfWeek].length; partOfDay_i++) {
+									var begOfPartFree = m.free[typeOfWeek][dayOfWeek][partOfDay_i][0];
+									var endOfPartFree = m.free[typeOfWeek][dayOfWeek][partOfDay_i][1];
+									if(begOfPartFree <= begTimeM && endTimeM <= endOfPartFree) {
+									
+										var di = {
+										'name':m.name, 
+										'no':m.id, 
+										'sex':m.sex, 
+										'grade':m.grade, 
+										'dept':m.dept,
+										'job':m.job,
+										'time':[begOfPartFree, endOfPartFree], 
+										'timeHour':[m2h(begOfPartFree), m2h(endOfPartFree)], 
+										'select':0,
+										'ori':m};
+										manActCurActData[1]['阶段'+workPart]['can'].push(di);
+										console.log(m);
+										break;
+									}
+								}
+							}
+						}
+					}
+					
+                </script>
+
+                <!--活动安排 设置阶段-->
+                <div id="manActSetPart">
+                    <table class="table table-responsive table-hover table-bordered table-condensed text-center">
+                        <tr>
+                            <td colspan="3">
+                                <!--第几天-->
+                                <span id="manAct_dayName" class="text-right">第1天</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>阶段数</td>
+                            <td>
+                                <!--阶段数-->
+                                <select id="manAct_partNums" name="manAct_partNums" onchange="manAct_changePartTimeDiv()"
+                                        class="form-control selectpicker" style="font-weight: bold">
+                                    <option value="0" selected>0</option>
+                                    <option value="1">1</option>
+                                    <option value="2">2</option>
+                                    <option value="3">3</option>
+                                    <option value="4">4</option>
+                                    <option value="5">5</option>
+                                    <option value="6">6</option>
+                                    <option value="7">7</option>
+                                    <option value="8">8</option>
+                                    <option value="9">9</option>
+                                    <option value="10">10</option>
+                                </select>
+                            </td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>星期几</td>
+                            <td>
+                                <!--阶段数-->
+                                <select id="dayOfWeek" class="form-control selectpicker" style="font-weight: bold">
+                                    <option value=0 selected>星期一</option>
+                                    <option value=1>星期二</option>
+                                    <option value=2>星期三</option>
+                                    <option value=3>星期四</option>
+                                    <option value=4>星期五</option>
+                                    <option value=5>星期六</option>
+                                    <option value=6>星期日</option>
+                                </select>
+                            </td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>单双周</td>
+                            <td>
+                                <!--单双周-->
+                                <select id="manAct_partWeekType" name="manAct_partNums"
+                                        class="form-control selectpicker">
+                                    <option value="0" selected>单周</option>
+                                    <option value="1">双周</option>
+                                </select>
+                            </td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>阶段名</td>
+                            <td>起始时间</td>
+                            <td>结束时间</td>
+                        </tr>
+                        <tr id="1_partTime" style="display:none;">
+                            <td>阶段1</td>
+                            <td>
+                                <div id="1_partTimeBegin">
+                                    <select id="1_partTimeBeginHour">
+                                        <option selected>00</option>
+                                        <option>01</option>
+                                        <option>02</option>
+                                        <option>03</option>
+                                        <option>04</option>
+                                        <option>05</option>
+                                        <option>06</option>
+                                        <option>07</option>
+                                        <option>08</option>
+                                        <option>09</option>
+                                        <option>10</option>
+                                        <option>11</option>
+                                        <option>12</option>
+                                        <option>13</option>
+                                        <option>14</option>
+                                        <option>15</option>
+                                        <option>16</option>
+                                        <option>17</option>
+                                        <option>18</option>
+                                        <option>19</option>
+                                        <option>20</option>
+                                        <option>21</option>
+                                        <option>22</option>
+                                        <option>23</option>
+                                    </select>:
+                                    <select id="1_partTimeBeginMintue">
+                                        <option selected>00</option>
+                                        <option>05</option>
+                                        <option>10</option>
+                                        <option>15</option>
+                                        <option>20</option>
+                                        <option>25</option>
+                                        <option>30</option>
+                                        <option>35</option>
+                                        <option>40</option>
+                                        <option>45</option>
+                                        <option>50</option>
+                                        <option>55</option>
+                                    </select>
+                                </div>
+                            </td>
+                            <td>
+                                <div id="1_partTimeEnd">
+                                    <select id="1_partTimeEndHour">
+                                        <option selected>00</option>
+                                        <option>01</option>
+                                        <option>02</option>
+                                        <option>03</option>
+                                        <option>04</option>
+                                        <option>05</option>
+                                        <option>06</option>
+                                        <option>07</option>
+                                        <option>08</option>
+                                        <option>09</option>
+                                        <option>10</option>
+                                        <option>11</option>
+                                        <option>12</option>
+                                        <option>13</option>
+                                        <option>14</option>
+                                        <option>15</option>
+                                        <option>16</option>
+                                        <option>17</option>
+                                        <option>18</option>
+                                        <option>19</option>
+                                        <option>20</option>
+                                        <option>21</option>
+                                        <option>22</option>
+                                        <option>23</option>
+                                    </select>:
+                                    <select id="1_partTimeEndMintue">
+                                        <option selected>00</option>
+                                        <option>05</option>
+                                        <option>10</option>
+                                        <option>15</option>
+                                        <option>20</option>
+                                        <option>25</option>
+                                        <option>30</option>
+                                        <option>35</option>
+                                        <option>40</option>
+                                        <option>45</option>
+                                        <option>50</option>
+                                        <option>55</option>
+                                    </select>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr id="2_partTime" style="display:none;">
+                            <td>阶段2</td>
+                            <td>
+                                <div id="2_partTimeBegin">
+                                    <select id="2_partTimeBeginHour">
+                                        <option selected>00</option>
+                                        <option>01</option>
+                                        <option>02</option>
+                                        <option>03</option>
+                                        <option>04</option>
+                                        <option>05</option>
+                                        <option>06</option>
+                                        <option>07</option>
+                                        <option>08</option>
+                                        <option>09</option>
+                                        <option>10</option>
+                                        <option>11</option>
+                                        <option>12</option>
+                                        <option>13</option>
+                                        <option>14</option>
+                                        <option>15</option>
+                                        <option>16</option>
+                                        <option>17</option>
+                                        <option>18</option>
+                                        <option>19</option>
+                                        <option>20</option>
+                                        <option>21</option>
+                                        <option>22</option>
+                                        <option>23</option>
+                                    </select>:
+                                    <select id="2_partTimeBeginMintue">
+                                        <option selected>00</option>
+                                        <option>05</option>
+                                        <option>10</option>
+                                        <option>15</option>
+                                        <option>20</option>
+                                        <option>25</option>
+                                        <option>30</option>
+                                        <option>35</option>
+                                        <option>40</option>
+                                        <option>45</option>
+                                        <option>50</option>
+                                        <option>55</option>
+                                    </select>
+                                </div>
+                            </td>
+                            <td>
+                                <div id="2_partTimeEnd">
+                                    <select id="2_partTimeEndHour">
+                                        <option selected>00</option>
+                                        <option>01</option>
+                                        <option>02</option>
+                                        <option>03</option>
+                                        <option>04</option>
+                                        <option>05</option>
+                                        <option>06</option>
+                                        <option>07</option>
+                                        <option>08</option>
+                                        <option>09</option>
+                                        <option>10</option>
+                                        <option>11</option>
+                                        <option>12</option>
+                                        <option>13</option>
+                                        <option>14</option>
+                                        <option>15</option>
+                                        <option>16</option>
+                                        <option>17</option>
+                                        <option>18</option>
+                                        <option>19</option>
+                                        <option>20</option>
+                                        <option>21</option>
+                                        <option>22</option>
+                                        <option>23</option>
+                                    </select>:
+                                    <select id="2_partTimeEndMintue">
+                                        <option selected>00</option>
+                                        <option>05</option>
+                                        <option>10</option>
+                                        <option>15</option>
+                                        <option>20</option>
+                                        <option>25</option>
+                                        <option>30</option>
+                                        <option>35</option>
+                                        <option>40</option>
+                                        <option>45</option>
+                                        <option>50</option>
+                                        <option>55</option>
+                                    </select>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr id="3_partTime" style="display:none;">
+                            <td>阶段3</td>
+                            <td>
+                                <div id="3_partTimeBegin">
+                                    <select id="3_partTimeBeginHour">
+                                        <option selected>00</option>
+                                        <option>01</option>
+                                        <option>02</option>
+                                        <option>03</option>
+                                        <option>04</option>
+                                        <option>05</option>
+                                        <option>06</option>
+                                        <option>07</option>
+                                        <option>08</option>
+                                        <option>09</option>
+                                        <option>10</option>
+                                        <option>11</option>
+                                        <option>12</option>
+                                        <option>13</option>
+                                        <option>14</option>
+                                        <option>15</option>
+                                        <option>16</option>
+                                        <option>17</option>
+                                        <option>18</option>
+                                        <option>19</option>
+                                        <option>20</option>
+                                        <option>21</option>
+                                        <option>22</option>
+                                        <option>23</option>
+                                    </select>:
+                                    <select id="3_partTimeBeginMintue">
+                                        <option selected>00</option>
+                                        <option>05</option>
+                                        <option>10</option>
+                                        <option>15</option>
+                                        <option>20</option>
+                                        <option>25</option>
+                                        <option>30</option>
+                                        <option>35</option>
+                                        <option>40</option>
+                                        <option>45</option>
+                                        <option>50</option>
+                                        <option>55</option>
+                                    </select>
+                                </div>
+                            </td>
+                            <td>
+                                <div id="3_partTimeEnd" >
+                                    <select id="3_partTimeEndHour">
+                                        <option selected>00</option>
+                                        <option>01</option>
+                                        <option>02</option>
+                                        <option>03</option>
+                                        <option>04</option>
+                                        <option>05</option>
+                                        <option>06</option>
+                                        <option>07</option>
+                                        <option>08</option>
+                                        <option>09</option>
+                                        <option>10</option>
+                                        <option>11</option>
+                                        <option>12</option>
+                                        <option>13</option>
+                                        <option>14</option>
+                                        <option>15</option>
+                                        <option>16</option>
+                                        <option>17</option>
+                                        <option>18</option>
+                                        <option>19</option>
+                                        <option>20</option>
+                                        <option>21</option>
+                                        <option>22</option>
+                                        <option>23</option>
+                                    </select>:
+                                    <select id="3_partTimeEndMintue">
+                                        <option selected>00</option>
+                                        <option>05</option>
+                                        <option>10</option>
+                                        <option>15</option>
+                                        <option>20</option>
+                                        <option>25</option>
+                                        <option>30</option>
+                                        <option>35</option>
+                                        <option>40</option>
+                                        <option>45</option>
+                                        <option>50</option>
+                                        <option>55</option>
+                                    </select>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr id="4_partTime" style="display:none;">
+                            <td>阶段4</td>
+                            <td>
+                                <div id="4_partTimeBegin" onchange="chekTime(3, 4)"  style="display:inline">
+                                    <select id="4_partTimeBeginHour">
+                                        <option selected>00</option>
+                                        <option>01</option>
+                                        <option>02</option>
+                                        <option>03</option>
+                                        <option>04</option>
+                                        <option>05</option>
+                                        <option>06</option>
+                                        <option>07</option>
+                                        <option>08</option>
+                                        <option>09</option>
+                                        <option>10</option>
+                                        <option>11</option>
+                                        <option>12</option>
+                                        <option>13</option>
+                                        <option>14</option>
+                                        <option>15</option>
+                                        <option>16</option>
+                                        <option>17</option>
+                                        <option>18</option>
+                                        <option>19</option>
+                                        <option>20</option>
+                                        <option>21</option>
+                                        <option>22</option>
+                                        <option>23</option>
+                                    </select>:
+                                    <select id="4_partTimeBeginMintue">
+                                        <option selected>00</option>
+                                        <option>05</option>
+                                        <option>10</option>
+                                        <option>15</option>
+                                        <option>20</option>
+                                        <option>25</option>
+                                        <option>30</option>
+                                        <option>35</option>
+                                        <option>40</option>
+                                        <option>45</option>
+                                        <option>50</option>
+                                        <option>55</option>
+                                    </select>
+                                </div>
+                            </td>
+                            <td>
+                                <div id="4_partTimeEnd" onchange="chekTime(4, 4)"  style="display:inline">
+                                    <select id="4_partTimeEndHour">
+                                        <option selected>00</option>
+                                        <option>01</option>
+                                        <option>02</option>
+                                        <option>03</option>
+                                        <option>04</option>
+                                        <option>05</option>
+                                        <option>06</option>
+                                        <option>07</option>
+                                        <option>08</option>
+                                        <option>09</option>
+                                        <option>10</option>
+                                        <option>11</option>
+                                        <option>12</option>
+                                        <option>13</option>
+                                        <option>14</option>
+                                        <option>15</option>
+                                        <option>16</option>
+                                        <option>17</option>
+                                        <option>18</option>
+                                        <option>19</option>
+                                        <option>20</option>
+                                        <option>21</option>
+                                        <option>22</option>
+                                        <option>23</option>
+                                    </select>:
+                                    <select id="4_partTimeEndMintue">
+                                        <option selected>00</option>
+                                        <option>05</option>
+                                        <option>10</option>
+                                        <option>15</option>
+                                        <option>20</option>
+                                        <option>25</option>
+                                        <option>30</option>
+                                        <option>35</option>
+                                        <option>40</option>
+                                        <option>45</option>
+                                        <option>50</option>
+                                        <option>55</option>
+                                    </select>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr id="5_partTime" style="display:none;">
+                            <td>阶段5</td>
+                            <td>
+                                <div id="5_partTimeBegin">
+                                    <select id="5_partTimeBeginHour">
+                                        <option selected>00</option>
+                                        <option>01</option>
+                                        <option>02</option>
+                                        <option>03</option>
+                                        <option>04</option>
+                                        <option>05</option>
+                                        <option>06</option>
+                                        <option>07</option>
+                                        <option>08</option>
+                                        <option>09</option>
+                                        <option>10</option>
+                                        <option>11</option>
+                                        <option>12</option>
+                                        <option>13</option>
+                                        <option>14</option>
+                                        <option>15</option>
+                                        <option>16</option>
+                                        <option>17</option>
+                                        <option>18</option>
+                                        <option>19</option>
+                                        <option>20</option>
+                                        <option>21</option>
+                                        <option>22</option>
+                                        <option>23</option>
+                                    </select>:
+                                    <select id="5_partTimeBeginMintue">
+                                        <option selected>00</option>
+                                        <option>05</option>
+                                        <option>10</option>
+                                        <option>15</option>
+                                        <option>20</option>
+                                        <option>25</option>
+                                        <option>30</option>
+                                        <option>35</option>
+                                        <option>40</option>
+                                        <option>45</option>
+                                        <option>50</option>
+                                        <option>55</option>
+                                    </select>
+                                </div>
+                            </td>
+                            <td>
+                                <div id="5_partTimeEnd">
+                                    <select id="5_partTimeEndHour">
+                                        <option selected>00</option>
+                                        <option>01</option>
+                                        <option>02</option>
+                                        <option>03</option>
+                                        <option>04</option>
+                                        <option>05</option>
+                                        <option>06</option>
+                                        <option>07</option>
+                                        <option>08</option>
+                                        <option>09</option>
+                                        <option>10</option>
+                                        <option>11</option>
+                                        <option>12</option>
+                                        <option>13</option>
+                                        <option>14</option>
+                                        <option>15</option>
+                                        <option>16</option>
+                                        <option>17</option>
+                                        <option>18</option>
+                                        <option>19</option>
+                                        <option>20</option>
+                                        <option>21</option>
+                                        <option>22</option>
+                                        <option>23</option>
+                                    </select>:
+                                    <select id="5_partTimeEndMintue">
+                                        <option selected>00</option>
+                                        <option>05</option>
+                                        <option>10</option>
+                                        <option>15</option>
+                                        <option>20</option>
+                                        <option>25</option>
+                                        <option>30</option>
+                                        <option>35</option>
+                                        <option>40</option>
+                                        <option>45</option>
+                                        <option>50</option>
+                                        <option>55</option>
+                                    </select>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr id="6_partTime" style="display:none;">
+                            <td>阶段6</td>
+                            <td>
+                                <div id="6_partTimeBegin">
+                                    <select id="6_partTimeBeginHour">
+                                        <option selected>00</option>
+                                        <option>01</option>
+                                        <option>02</option>
+                                        <option>03</option>
+                                        <option>04</option>
+                                        <option>05</option>
+                                        <option>06</option>
+                                        <option>07</option>
+                                        <option>08</option>
+                                        <option>09</option>
+                                        <option>10</option>
+                                        <option>11</option>
+                                        <option>12</option>
+                                        <option>13</option>
+                                        <option>14</option>
+                                        <option>15</option>
+                                        <option>16</option>
+                                        <option>17</option>
+                                        <option>18</option>
+                                        <option>19</option>
+                                        <option>20</option>
+                                        <option>21</option>
+                                        <option>22</option>
+                                        <option>23</option>
+                                    </select>:
+                                    <select id="6_partTimeBeginMintue">
+                                        <option selected>00</option>
+                                        <option>05</option>
+                                        <option>10</option>
+                                        <option>15</option>
+                                        <option>20</option>
+                                        <option>25</option>
+                                        <option>30</option>
+                                        <option>35</option>
+                                        <option>40</option>
+                                        <option>45</option>
+                                        <option>50</option>
+                                        <option>55</option>
+                                    </select>
+                                </div>
+                            </td>
+                            <td>
+                                <div id="6_partTimeEnd">
+                                    <select id="6_partTimeEndHour">
+                                        <option selected>00</option>
+                                        <option>01</option>
+                                        <option>02</option>
+                                        <option>03</option>
+                                        <option>04</option>
+                                        <option>05</option>
+                                        <option>06</option>
+                                        <option>07</option>
+                                        <option>08</option>
+                                        <option>09</option>
+                                        <option>10</option>
+                                        <option>11</option>
+                                        <option>12</option>
+                                        <option>13</option>
+                                        <option>14</option>
+                                        <option>15</option>
+                                        <option>16</option>
+                                        <option>17</option>
+                                        <option>18</option>
+                                        <option>19</option>
+                                        <option>20</option>
+                                        <option>21</option>
+                                        <option>22</option>
+                                        <option>23</option>
+                                    </select>:
+                                    <select id="6_partTimeEndMintue">
+                                        <option selected>00</option>
+                                        <option>05</option>
+                                        <option>10</option>
+                                        <option>15</option>
+                                        <option>20</option>
+                                        <option>25</option>
+                                        <option>30</option>
+                                        <option>35</option>
+                                        <option>40</option>
+                                        <option>45</option>
+                                        <option>50</option>
+                                        <option>55</option>
+                                    </select>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr id="7_partTime" style="display:none;">
+                            <td>阶段7</td>
+                            <td>
+                                <div id="7_partTimeBegin">
+                                    <select id="7_partTimeBeginHour">
+                                        <option selected>00</option>
+                                        <option>01</option>
+                                        <option>02</option>
+                                        <option>03</option>
+                                        <option>04</option>
+                                        <option>05</option>
+                                        <option>06</option>
+                                        <option>07</option>
+                                        <option>08</option>
+                                        <option>09</option>
+                                        <option>10</option>
+                                        <option>11</option>
+                                        <option>12</option>
+                                        <option>13</option>
+                                        <option>14</option>
+                                        <option>15</option>
+                                        <option>16</option>
+                                        <option>17</option>
+                                        <option>18</option>
+                                        <option>19</option>
+                                        <option>20</option>
+                                        <option>21</option>
+                                        <option>22</option>
+                                        <option>23</option>
+                                    </select>:
+                                    <select id="7_partTimeBeginMintue">
+                                        <option selected>00</option>
+                                        <option>05</option>
+                                        <option>10</option>
+                                        <option>15</option>
+                                        <option>20</option>
+                                        <option>25</option>
+                                        <option>30</option>
+                                        <option>35</option>
+                                        <option>40</option>
+                                        <option>45</option>
+                                        <option>50</option>
+                                        <option>55</option>
+                                    </select>
+                                </div>
+                            </td>
+                            <td>
+                                <div id="7_partTimeEnd">
+                                    <select id="7_partTimeEndHour">
+                                        <option selected>00</option>
+                                        <option>01</option>
+                                        <option>02</option>
+                                        <option>03</option>
+                                        <option>04</option>
+                                        <option>05</option>
+                                        <option>06</option>
+                                        <option>07</option>
+                                        <option>08</option>
+                                        <option>09</option>
+                                        <option>10</option>
+                                        <option>11</option>
+                                        <option>12</option>
+                                        <option>13</option>
+                                        <option>14</option>
+                                        <option>15</option>
+                                        <option>16</option>
+                                        <option>17</option>
+                                        <option>18</option>
+                                        <option>19</option>
+                                        <option>20</option>
+                                        <option>21</option>
+                                        <option>22</option>
+                                        <option>23</option>
+                                    </select>:
+                                    <select id="7_partTimeEndMintue">
+                                        <option selected>00</option>
+                                        <option>05</option>
+                                        <option>10</option>
+                                        <option>15</option>
+                                        <option>20</option>
+                                        <option>25</option>
+                                        <option>30</option>
+                                        <option>35</option>
+                                        <option>40</option>
+                                        <option>45</option>
+                                        <option>50</option>
+                                        <option>55</option>
+                                    </select>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr id="8_partTime" style="display:none;">
+                            <td>阶段8</td>
+                            <td>
+                                <div id="8_partTimeBegin">
+                                    <select id="8_partTimeBeginHour">
+                                        <option selected>00</option>
+                                        <option>01</option>
+                                        <option>02</option>
+                                        <option>03</option>
+                                        <option>04</option>
+                                        <option>05</option>
+                                        <option>06</option>
+                                        <option>07</option>
+                                        <option>08</option>
+                                        <option>09</option>
+                                        <option>10</option>
+                                        <option>11</option>
+                                        <option>12</option>
+                                        <option>13</option>
+                                        <option>14</option>
+                                        <option>15</option>
+                                        <option>16</option>
+                                        <option>17</option>
+                                        <option>18</option>
+                                        <option>19</option>
+                                        <option>20</option>
+                                        <option>21</option>
+                                        <option>22</option>
+                                        <option>23</option>
+                                    </select>:
+                                    <select id="8_partTimeBeginMintue">
+                                        <option selected>00</option>
+                                        <option>05</option>
+                                        <option>10</option>
+                                        <option>15</option>
+                                        <option>20</option>
+                                        <option>25</option>
+                                        <option>30</option>
+                                        <option>35</option>
+                                        <option>40</option>
+                                        <option>45</option>
+                                        <option>50</option>
+                                        <option>55</option>
+                                    </select>
+                                </div>
+                            </td>
+                            <td>
+                                <div id="8_partTimeEnd">
+                                    <select id="8_partTimeEndHour">
+                                        <option selected>00</option>
+                                        <option>01</option>
+                                        <option>02</option>
+                                        <option>03</option>
+                                        <option>04</option>
+                                        <option>05</option>
+                                        <option>06</option>
+                                        <option>07</option>
+                                        <option>08</option>
+                                        <option>09</option>
+                                        <option>10</option>
+                                        <option>11</option>
+                                        <option>12</option>
+                                        <option>13</option>
+                                        <option>14</option>
+                                        <option>15</option>
+                                        <option>16</option>
+                                        <option>17</option>
+                                        <option>18</option>
+                                        <option>19</option>
+                                        <option>20</option>
+                                        <option>21</option>
+                                        <option>22</option>
+                                        <option>23</option>
+                                    </select>:
+                                    <select id="8_partTimeEndMintue">
+                                        <option selected>00</option>
+                                        <option>05</option>
+                                        <option>10</option>
+                                        <option>15</option>
+                                        <option>20</option>
+                                        <option>25</option>
+                                        <option>30</option>
+                                        <option>35</option>
+                                        <option>40</option>
+                                        <option>45</option>
+                                        <option>50</option>
+                                        <option>55</option>
+                                    </select>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr id="9_partTime" style="display:none;">
+                            <td>阶段9</td>
+                            <td>
+                                <div id="9_partTimeBegin">
+                                    <select id="9_partTimeBeginHour">
+                                        <option selected>00</option>
+                                        <option>01</option>
+                                        <option>02</option>
+                                        <option>03</option>
+                                        <option>04</option>
+                                        <option>05</option>
+                                        <option>06</option>
+                                        <option>07</option>
+                                        <option>08</option>
+                                        <option>09</option>
+                                        <option>10</option>
+                                        <option>11</option>
+                                        <option>12</option>
+                                        <option>13</option>
+                                        <option>14</option>
+                                        <option>15</option>
+                                        <option>16</option>
+                                        <option>17</option>
+                                        <option>18</option>
+                                        <option>19</option>
+                                        <option>20</option>
+                                        <option>21</option>
+                                        <option>22</option>
+                                        <option>23</option>
+                                    </select>:
+                                    <select id="9_partTimeBeginMintue">
+                                        <option selected>00</option>
+                                        <option>05</option>
+                                        <option>10</option>
+                                        <option>15</option>
+                                        <option>20</option>
+                                        <option>25</option>
+                                        <option>30</option>
+                                        <option>35</option>
+                                        <option>40</option>
+                                        <option>45</option>
+                                        <option>50</option>
+                                        <option>55</option>
+                                    </select>
+                                </div>
+                            </td>
+                            <td>
+                                <div id="9_partTimeEnd">
+                                    <select id="9_partTimeEndHour">
+                                        <option selected>00</option>
+                                        <option>01</option>
+                                        <option>02</option>
+                                        <option>03</option>
+                                        <option>04</option>
+                                        <option>05</option>
+                                        <option>06</option>
+                                        <option>07</option>
+                                        <option>08</option>
+                                        <option>09</option>
+                                        <option>10</option>
+                                        <option>11</option>
+                                        <option>12</option>
+                                        <option>13</option>
+                                        <option>14</option>
+                                        <option>15</option>
+                                        <option>16</option>
+                                        <option>17</option>
+                                        <option>18</option>
+                                        <option>19</option>
+                                        <option>20</option>
+                                        <option>21</option>
+                                        <option>22</option>
+                                        <option>23</option>
+                                    </select>:
+                                    <select id="9_partTimeEndMintue">
+                                        <option selected>00</option>
+                                        <option>05</option>
+                                        <option>10</option>
+                                        <option>15</option>
+                                        <option>20</option>
+                                        <option>25</option>
+                                        <option>30</option>
+                                        <option>35</option>
+                                        <option>40</option>
+                                        <option>45</option>
+                                        <option>50</option>
+                                        <option>55</option>
+                                    </select>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr id="10_partTime" style="display:none;">
+                            <td>阶段10</td>
+                            <td>
+                                <div id="10_partTimeBegin">
+                                    <select id="10_partTimeBeginHour">
+                                        <option selected>00</option>
+                                        <option>01</option>
+                                        <option>02</option>
+                                        <option>03</option>
+                                        <option>04</option>
+                                        <option>05</option>
+                                        <option>06</option>
+                                        <option>07</option>
+                                        <option>08</option>
+                                        <option>09</option>
+                                        <option>10</option>
+                                        <option>11</option>
+                                        <option>12</option>
+                                        <option>13</option>
+                                        <option>14</option>
+                                        <option>15</option>
+                                        <option>16</option>
+                                        <option>17</option>
+                                        <option>18</option>
+                                        <option>19</option>
+                                        <option>20</option>
+                                        <option>21</option>
+                                        <option>22</option>
+                                        <option>23</option>
+                                    </select>:
+                                    <select id="10_partTimeBeginMintue">
+                                        <option selected>00</option>
+                                        <option>05</option>
+                                        <option>10</option>
+                                        <option>15</option>
+                                        <option>20</option>
+                                        <option>25</option>
+                                        <option>30</option>
+                                        <option>35</option>
+                                        <option>40</option>
+                                        <option>45</option>
+                                        <option>50</option>
+                                        <option>55</option>
+                                    </select>
+                                </div>
+                            </td>
+                            <td>
+                                <div id="10_partTimeEnd">
+                                    <select id="10_partTimeEndHour">
+                                        <option selected>00</option>
+                                        <option>01</option>
+                                        <option>02</option>
+                                        <option>03</option>
+                                        <option>04</option>
+                                        <option>05</option>
+                                        <option>06</option>
+                                        <option>07</option>
+                                        <option>08</option>
+                                        <option>09</option>
+                                        <option>10</option>
+                                        <option>11</option>
+                                        <option>12</option>
+                                        <option>13</option>
+                                        <option>14</option>
+                                        <option>15</option>
+                                        <option>16</option>
+                                        <option>17</option>
+                                        <option>18</option>
+                                        <option>19</option>
+                                        <option>20</option>
+                                        <option>21</option>
+                                        <option>22</option>
+                                        <option>23</option>
+                                    </select>:
+                                    <select id="10_partTimeEndMintue">
+                                        <option selected>00</option>
+                                        <option>05</option>
+                                        <option>10</option>
+                                        <option>15</option>
+                                        <option>20</option>
+                                        <option>25</option>
+                                        <option>30</option>
+                                        <option>35</option>
+                                        <option>40</option>
+                                        <option>45</option>
+                                        <option>50</option>
+                                        <option>55</option>
+                                    </select>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="3">
+                                <span onclick="manAct_SetNextDay()" class="btn btn-md btn-warning" id="setNextDayBtn">确定阶段设置</span>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+
+                <!--活动安排 安排人员-->
+                <div id="manActDecPart" class="container" style="display: none; width:88%">
+
+                    <script>
+                        // 提示字典
+                        tipDi = {};
+                        // 活动感想
+                        singDi = {};
+                        decideCurDay = 1;
+   
+                        // 决定阶段人员_排序
+                        function sortMem(a, b) {
+						
+                            var condition = $('input:radio[name="sort"]:checked').val();
+
+                            if(condition == 'time'){
+                                return (b['time'][0]+b['time'][1]) - (a['time'][0]+a['time'][1]);
+                            }else if(condition == 'grade'){
+                                return ( parseInt(a['no'].slice(0, 2)) - parseInt(b['no'].slice(0, 2)) );
+                            }else if(condition == 'sex'){
+								var sexOfA = (a['sex']=='男')?1:0;
+								var sexOfB = (b['sex']=='男')?1:0;
+                                return (sexOfA - sexOfB);
+                            }
+                        }
+						
+                        // 决定阶段人员_设置详情
+                        function setMemDetail(no) {
+                            if(no != undefined){
+                                var signNo = no.split('_')[2];
+                                $('#memDetail').html(tipDi[no]);
+                            }
+                        }
+                        // 决定阶段人员_显示页面
+                        function manAct_display(){
+                            $('#manActDecPart').show();
+
+                            // 隐藏所有阶段
+                            for(var i=1; i<=10; i++){
+                                $('#'+i+'_tr').hide();
+                            }
+                            manAct_setAllCanForPart();
+                        }
+                        // 决定阶段人员_设置当天所有阶段的候选人
+                        function manAct_setAllCanForPart() {
+						
+                            // var curDayCan = candidate['day'+decideCurDay];
+							var curDayCan = manActCurActData[1];
+                            // 遍历该天所有阶段
+                            for(var part = 1; part <= curDayCan['阶段数']; part++){
+                                console.log(curDayCan);
+                                // 显示及设置时间
+                                $('#'+part+'_tr').show();
+                                $('#'+part+'_trTime').html(curDayCan['阶段'+part]['begDate']  +'-'+  curDayCan['阶段'+part]['endDate']);
+
+                                // 排序 设置正式及候选人员
+                                curDayCan['阶段'+part]['can'].sort(sortMem);
+                                var canStr = '';
+                                var offStr = '';
+                                // 遍历该阶段所有候选者
+                                for(var canId = 0, curPartCan; canId < curDayCan['阶段'+part]['can'].length; canId++){
+                                    // 当前候选人
+                                    curPartCan = curDayCan['阶段'+part]['can'][canId];
+									
+                                    // 当前候选人的详情提示
+                                    var tipId = decideCurDay+'_'+part+'_'+curPartCan.no;
+                                    var tip = '';
+                                    tip += curPartCan.name+': ' + curPartCan.sex+', '+curPartCan.grade+', '+curPartCan.dept+' '+curPartCan.job;
+                                    tip += ' 优先级:'+(curPartCan.time[0]+curPartCan.time[1])+', 具体: ['+curPartCan.timeHour[0]+', '+curPartCan.timeHour[1]+']';
+                                    var mouse_event = ' onmouseover="setMemDetail(\''+tipId+'\')" onmouseout="setMemDetail()" ';
+
+                                    // 添加至提示字典
+                                    tipDi[tipId] = tip;
+
+                                    // 不是候选人
+                                    if(curPartCan.select != 1){
+                                        var can_event = ' onclick="manAct_select('+decideCurDay+', '+part+', '+curPartCan.no+')" ';
+                                        console.log('houxuanren');
+                                        canStr += '<span '+mouse_event+can_event+'class="btn btn-sm btn-success">'+curPartCan.name+'</span> ';
+                                    } else {
+                                        var off_event = ' onclick="manAct_unselect('+part+', '+curPartCan.no+')" ';
+                                        canStr += '<span '+mouse_event+'class="btn btn-sm btn-default">'+curPartCan.name+'</span> ';
+                                        offStr += '<span '+mouse_event+off_event+'class="btn btn-sm btn-warning">'+curPartCan.name+'</span> ';
+                                    }
+                                }
+                                console.log(canStr);
+                                $('#'+part+'_trOff').html(offStr);
+                                $('#'+part+'_trCan').html(canStr);
+                            }
+                        }
+
+                        // 决定阶段人员_你被选中了
+                        function manAct_select(dayId, partId, no){
+
+                        // select:0 正常;  1: 此阶段选中;  -1: 其它阶段选中
+                            var curDayCan = manActCurActData[1];
+                            // 遍历该天所有阶段
+                            for(var part = 1; part <= curDayCan['阶段数']; part++){
+                                // 遍历该阶段所有候选者
+                                for(var canId = 0, curPartCan; canId < curDayCan['阶段'+part]['can'].length; canId++){
+                                    curPartCan = curDayCan['阶段'+part]['can'][canId];
+                                    // 目标学号
+                                    if(curPartCan['no'] == no){
+                                        // 目标阶段
+                                        if(part == partId){
+                                            if(curPartCan['select'] == 0)
+                                                curPartCan['select'] = 1;
+                                        } else { // 非目标阶段
+											curPartCan['select'] = -1;
+                                        }
+                                    }
+
+                                }
+                            }
+                            // 更新页面
+                            manAct_setAllCanForPart();
+                        }
+                        // 决定阶段人员_取消选择
+                        function manAct_unselect(dayId, no){
+
+                            var curDayCan = manActCurActData[1];
+                            // 遍历该天所有阶段
+                            for(var part = 1; part <= curDayCan['阶段数']; part++){
+                                // 遍历该阶段所有候选者
+                                for(var canId = 0, curPartCan; canId < curDayCan['阶段'+part]['can'].length; canId++){
+                                    curPartCan = curDayCan['阶段'+part]['can'][canId];
+                                    // 目标学号
+                                    if(curPartCan['no'] == no){
+                                        curPartCan['select'] = 0;
+                                    }
+                                }
+                            }
+                            // 更新页面
+                            manAct_setAllCanForPart();
+                        }
+                        // 决定今天
+                        function manAct_decideThisDay() {
+                            // 显示概览
+                            manAct_setviewcontent();
+                        }
+                    </script>
+                    <!--第几天-->
+                    <div class="text-center">
+                        <span id="manActOffDayName" style="font-size: 20px">第1天</span>
+                    </div>
+                    <p onchange="manAct_setAllCanForPart()">
+                        <span style="text-align: right">排序: </span>
+                        <span><input name="sort" type="radio" value="time"   checked>时间优先级</span>
+                        <span><input name="sort" type="radio" value="sex"           >性别</span>
+                        <span><input name="sort" type="radio" value="grade"         >年级</span>
+                    </p>
+                    <p>详情: <span id="memDetail"></span></p>
+                    <table class="table table-responsive table-hover table-bordered table-condensed">
+                        <thead>
+                        <tr>
+                            <th>阶段名</th>
+                            <th>时间</th>
+                            <th>正式人员</th>
+                            <th>候选人员</th>
+                        </tr>
+                        </thead>
+
+                        <tbody>
+                        <tr id="1_tr">
+                            <td>阶段一</td>
+                            <td id="1_trTime">16:00-17:00</td>
+                            <td id="1_trOff"></td>
+                            <td id="1_trCan"></td>
+                        </tr>
+                        <tr id="2_tr">
+                            <td>阶段二</td>
+                            <td id="2_trTime">16:00-17:00</td>
+                            <td id="2_trOff"></td>
+                            <td id="2_trCan"></td>
+                        </tr>
+                        <tr id="3_tr">
+                            <td>阶段三</td>
+                            <td id="3_trTime">16:00-17:00</td>
+                            <td id="3_trOff"></td>
+                            <td id="3_trCan"></td>
+                        </tr>
+                        <tr id="4_tr">
+                            <td>阶段四</td>
+                            <td id="4_trTime">16:00-17:00</td>
+                            <td id="4_trOff"></td>
+                            <td id="4_trCan"></td>
+                        </tr>
+                        <tr id="5_tr">
+                            <td>阶段五</td>
+                            <td id="5_trTime">16:00-17:00</td>
+                            <td id="5_trOff"></td>
+                            <td id="5_trCan"></td>
+                        </tr>
+                        <tr id="6_tr">
+                            <td>阶段六</td>
+                            <td id="6_trTime">16:00-17:00</td>
+                            <td id="6_trOff"></td>
+                            <td id="6_trCan"></td>
+                        </tr>
+                        <tr id="7_tr">
+                            <td>阶段七</td>
+                            <td id="7_trTime">16:00-17:00</td>
+                            <td id="7_trOff"></td>
+                            <td id="7_trCan"></td>
+                        </tr>
+                        <tr id="8_tr">
+                            <td>阶段八</td>
+                            <td id="8_trTime">16:00-17:00</td>
+                            <td id="8_trOff"></td>
+                            <td id="8_trCan"></td>
+                        </tr>
+                        <tr id="9_tr">
+                            <td>阶段九</td>
+                            <td id="9_trTime">16:00-17:00</td>
+                            <td id="9_trOff"></td>
+                            <td id="9_trCan"></td>
+                        </tr>
+                        <tr id="10_tr">
+                            <td>阶段十</td>
+                            <td id="10_trTime">16:00-17:00</td>
+                            <td id="10_trOff"></td>
+                            <td id="10_trCan"></td>
+                        </tr>
+                        <tr>
+                            <td colspan="4" class="text-center">
+                                <span id="decBtn" onclick="manAct_decideThisDay()" class="btn btn-md btn-warning">确定人员</span>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!--活动安排 查看结果人员-->
+                <div id="manActViewResult" class="container" style="display:none; width:88%">
+                    <script>
+                        // 设置内容
+                        function manAct_setviewcontent(){
+                            $('#manActDecPart').hide();
+                            $('#manActViewResult').show();
+                            // 显示已有天数
+                            for(var day=1; day <= 1; day++){
+                                $('.Day'+day).show();
+                                console.log('.Day'+day);
+                                var curDayCan = manActCurActData[1];
+                                // 显示并遍历该天所有阶段
+                                for(var part = 1; part <= curDayCan['阶段数']; part++){
+                                    // 显示tr
+                                    $('#Day'+day+'_part'+part).show();
+
+                                    var partName = '阶段'+part;
+                                    var partTime = curDayCan['阶段'+part]['begDate']  +'-'+  curDayCan['阶段'+part]['endDate'];
+                                    var partOff = '';
+                                    for(var canId = 0, curPartCan; canId < curDayCan['阶段'+part]['can'].length; canId++){
+                                        // 当前候选人
+                                        curPartCan = curDayCan['阶段'+part]['can'][canId];
+                                        // 是工作人员
+                                        if(curPartCan.select == 1){
+                                            partOff += '<span class="btn btn-sm btn-success">'+curPartCan.name+'</span> ';
+                                        }
+                                    }
+
+                                    var s = '<td class="name">'+partName+'</td><td class="time">'+partTime+'</td><td class="off">'+partOff+'</td>';
+                                    $('#Day'+day+'_part'+part).html(s);
+                                }
+                                // 隐藏
+                                for(var part = curDayCan['阶段数']+1; part <= 10; part++){
+                                    // 显示tr
+                                    $('#Day'+day+'_part'+part).hide();
+                                }
+                            }
+                            for(var day=2; day <= 7; day++){
+                                $('.Day'+day).hide();
+                            }
+                        }
+                    </script>
+                    <table class="table table-responsive table-hover table-bordered table-condensed">
+                        <thead>
+                        <tr>
+                            <th class="Day1">第一天</th>
+                            <th class="Day2">第二天</th>
+                            <th class="Day3">第三天</th>
+                            <th class="Day4">第四天</th>
+                            <th class="Day5">第五天</th>
+                            <th class="Day6">第六天</th>
+                            <th class="Day7">第七天</th>
+                        </tr>
+                        </thead>
+
+                        <tbody>
+                        <tr>
+                            <td class="Day1">
+                                <table class="table table-responsive table-hover table-bordered table-condensed">
+                                    <tr><td>阶段名</td><td>阶段时间</td><td>工作人员</td></tr>
+                                    <tr id="Day1_part1"></tr>
+                                    <tr id="Day1_part2"></tr>
+                                    <tr id="Day1_part3"></tr>
+                                    <tr id="Day1_part4"></tr>
+                                    <tr id="Day1_part5"></tr>
+                                    <tr id="Day1_part6"></tr>
+                                    <tr id="Day1_part7"></tr>
+                                    <tr id="Day1_part8"></tr>
+                                    <tr id="Day1_part9"></tr>
+                                    <tr id="Day1_part10"></tr>
+                                </table>
+                            </td>
+                            <td class="Day2">
+                                <table class="table table-responsive table-hover table-bordered table-condensed">
+                                    <tr><td>阶段名</td><td>阶段时间</td><td>工作人员</td></tr>
+                                    <tr id="Day2_part1"></tr>
+                                    <tr id="Day2_part2"></tr>
+                                    <tr id="Day2_part3"></tr>
+                                    <tr id="Day2_part4"></tr>
+                                    <tr id="Day2_part5"></tr>
+                                    <tr id="Day2_part6"></tr>
+                                    <tr id="Day2_part7"></tr>
+                                    <tr id="Day2_part8"></tr>
+                                    <tr id="Day2_part9"></tr>
+                                    <tr id="Day2_part10"></tr>
+                                </table>
+                            </td>
+                            <td class="Day3">
+                                <table class="table table-responsive table-hover table-bordered table-condensed">
+                                    <tr><td>阶段名</td><td>阶段时间</td><td>工作人员</td></tr>
+                                    <tr id="Day3_part1"></tr>
+                                    <tr id="Day3_part2"></tr>
+                                    <tr id="Day3_part3"></tr>
+                                    <tr id="Day3_part4"></tr>
+                                    <tr id="Day3_part5"></tr>
+                                    <tr id="Day3_part6"></tr>
+                                    <tr id="Day3_part7"></tr>
+                                    <tr id="Day3_part8"></tr>
+                                    <tr id="Day3_part9"></tr>
+                                    <tr id="Day3_part10"></tr>
+                                </table>
+                            </td>
+                            <td class="Day4">
+                                <table class="table table-responsive table-hover table-bordered table-condensed">
+                                    <tr><td>阶段名</td><td>阶段时间</td><td>工作人员</td></tr>
+                                    <tr id="Day4_part1"></tr>
+                                    <tr id="Day4_part2"></tr>
+                                    <tr id="Day4_part3"></tr>
+                                    <tr id="Day4_part4"></tr>
+                                    <tr id="Day4_part5"></tr>
+                                    <tr id="Day4_part6"></tr>
+                                    <tr id="Day4_part7"></tr>
+                                    <tr id="Day4_part8"></tr>
+                                    <tr id="Day4_part9"></tr>
+                                    <tr id="Day4_part10"></tr>
+                                </table>
+                            </td>
+                            <td class="Day5">
+                                <table class="table table-responsive table-hover table-bordered table-condensed">
+                                    <tr><td>阶段名</td><td>阶段时间</td><td>工作人员</td></tr>
+                                    <tr id="Day5_part1"></tr>
+                                    <tr id="Day5_part2"></tr>
+                                    <tr id="Day5_part3"></tr>
+                                    <tr id="Day5_part4"></tr>
+                                    <tr id="Day5_part5"></tr>
+                                    <tr id="Day5_part6"></tr>
+                                    <tr id="Day5_part7"></tr>
+                                    <tr id="Day5_part8"></tr>
+                                    <tr id="Day5_part9"></tr>
+                                    <tr id="Day5_part10"></tr>
+                                </table>
+                            </td>
+                            <td class="Day6">
+                                <table class="table table-responsive table-hover table-bordered table-condensed">
+                                    <tr><td>阶段名</td><td>阶段时间</td><td>工作人员</td></tr>
+                                    <tr id="Day6_part1"></tr>
+                                    <tr id="Day6_part2"></tr>
+                                    <tr id="Day6_part3"></tr>
+                                    <tr id="Day6_part4"></tr>
+                                    <tr id="Day6_part5"></tr>
+                                    <tr id="Day6_part6"></tr>
+                                    <tr id="Day6_part7"></tr>
+                                    <tr id="Day6_part8"></tr>
+                                    <tr id="Day6_part9"></tr>
+                                    <tr id="Day6_part10"></tr>
+                                </table>
+                            </td>
+                            <td class="Day7">
+                                <table class="table table-responsive table-hover table-bordered table-condensed">
+                                    <tr><td>阶段名</td><td>阶段时间</td><td>工作人员</td></tr>
+                                    <tr id="Day7_part1"></tr>
+                                    <tr id="Day7_part2"></tr>
+                                    <tr id="Day7_part3"></tr>
+                                    <tr id="Day7_part4"></tr>
+                                    <tr id="Day7_part5"></tr>
+                                    <tr id="Day7_part6"></tr>
+                                    <tr id="Day7_part7"></tr>
+                                    <tr id="Day7_part8"></tr>
+                                    <tr id="Day7_part9"></tr>
+                                    <tr id="Day7_part10"></tr>
+                                </table>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                    <center>
+                        <span class="btn btn-md btn-primary">发表活动</span>
+                    </center>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div id="infoBox" style="display:none; z-index: 1000; position: absolute; top: 30%; right:20%; left:20%;">
+    <div class="container well" style="width:90%;">
+        <div style="text-align: right; margin-bottom: 5px">
+            <span class="btn btn-danger btn-sm" onclick="$('#infoBox').hide()">X</span>
+        </div>
+        <div id="infoContent" class="text-center"></div>
+        <br>
+    </div>
+</div>
+
+<script type="text/javascript" src="./js/jquery-3.2.1.js"></script>
+<script type="text/javascript" src="./bootstrap/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="data.js"></script>
+
+</body>
+</html>
