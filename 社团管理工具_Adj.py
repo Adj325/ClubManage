@@ -2,6 +2,8 @@
 import os
 import traceback
 
+import time
+
 """
    作者：吴杰春
 微信/QQ：179819930
@@ -202,11 +204,16 @@ class Club:
     # 浏览成员
     def browMember(self):
         print('\n-----------')
-        print('提示: 输入 break 时, 退出浏览\n')
+        print('提示: 输入 break 时, 退出浏览; 输入all，浏览全部\n')
         while True:
             stuName = input('姓名: ')
             if stuName == 'break':
                 break
+            if stuName == 'all':
+                for m in self.members:
+                    m.showInfo()
+                    print()
+                continue
             index = self.fid(stuName)
             if index != None:
                 self.members[index].showInfo()
@@ -522,6 +529,7 @@ class loadData:
             if len(li) == 1:
                 return li[0]
             else:
+                print(li)
                 error('警告: {}数据文件多于一个'.format(fileName))
                 return ''
 
@@ -589,19 +597,23 @@ class loadData:
                 # 第一列不为'',为部门时 ( 第一列不为空就是部门名字 )
                 # 组织部 小红   第一列为部门名
                 #       小明   第一列为''
+
                 if row[0] != '':
                     each_dept = row[0]
-                # 判断年级
-                if '理事会' == each_dept:
-                    m.grade = '大三'
-                elif '部长' == row[c_job]:
-                    m.grade = '大三'
-                elif '副部' in row[c_job]:
-                    m.grade = '大二'
-                elif '助理' in row[c_job]:
-                    m.grade = '大二'
-                elif '干事' == row[c_job]:
+                # 根据学号判断年级
+                preNo = row[d_info['学号']][0:2]
+                begin = time.mktime(time.strptime("09 10 20{}".format(preNo),"%m %d %Y"))
+                now = time.time()
+                year = (now-begin)/60/60/24/365
+                if year < 1:
                     m.grade = '大一'
+                elif year < 2:
+                    m.grade = '大二'
+                elif year < 3:
+                    m.grade = '大三'
+                elif year < 4:
+                    m.grade = '大四'
+
                 m.name = row[d_info['姓名']]
                 m.sex = row[d_info['性别']]
                 m.id = row[d_info['学号']].replace('.0', '')
