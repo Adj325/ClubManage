@@ -61,6 +61,7 @@ def fid(members, name):
 
 # 异常退出
 def error(meg):
+    print(meg)
     input('回车后, 结束程序!')
     exit(1)
 
