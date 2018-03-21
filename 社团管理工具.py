@@ -323,7 +323,7 @@ class Club:
                             if l_xlsSch[index_p + 10][index_wd + 1][0] == '':
                                 l_xlsSch[index_p + 10][index_wd + 1][0] = mName
                             else:
-                                l_xlsSch[index_p + 10][index_wd + 1][0] = l_xlsSch[index_p + 11][index_wd + 1][
+                                l_xlsSch[index_p + 10][index_wd + 1][0] = l_xlsSch[index_p + 10][index_wd + 1][
                                                                                  0] + '、' + mName
 
             # 输出课表
