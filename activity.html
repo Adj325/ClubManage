@@ -17,6 +17,14 @@
 </h1>
 
 	<div id="classes" class="container">
+		<h1>教程_gif</h1>
+		<br>
+		<br>
+		<img src="./images/classes.gif">
+		<br>
+		<hr>
+		<br>
+		<h1>教程_图文</h1>
 		<h2>第一步: 确定活动开展时间, 单(双)周, 星期几, 一共有多少阶段(班), 每个阶段(班)的开始结束时间</h2><br>
 		如: 红会于本周(<b>单</b>周)的<b>星期三</b>开展一个活动, 一共<b>六</b>个阶段<br>
 		1)	第一阶段: 07:55-09:40<br>
@@ -88,7 +96,7 @@
 				<td>阶段数</td>
 				<td>
 					<!--阶段数-->
-					<select id="manAct_partNums" name="manAct_partNums" onchange="manAct_changePartTimeDiv()"
+					<select id="manAct_partNums" onchange="manAct_changePartTimeDiv()"
 							class="form-control selectpicker" style="font-weight: bold">
 						<option value="0" selected>0</option>
 						<option value="1">1</option>
@@ -125,7 +133,7 @@
 				<td>单双周</td>
 				<td>
 					<!--单双周-->
-					<select id="manAct_partWeekType" name="manAct_partNums"
+					<select id="manAct_partWeekType"
 							class="form-control selectpicker">
 						<option value="0" selected>单周</option>
 						<option value="1">双周</option>
@@ -1278,8 +1286,8 @@
 	</div>
 </div>
 
-<div id="infoBox" style="display:none; z-index: 1000; position: absolute; top: 30%; right:20%; left:20%;">
-    <div class="container well" style="width:90%;">
+<div style="z-index: 1000; position: absolute; top: 30%; right:20%; left:20%;">
+    <div id="infoBox" class="container well" style="width:90%;">
         <div style="text-align: right; margin-bottom: 5px">
             <span class="btn btn-danger btn-sm" onclick="$('#infoBox').hide()">X</span>
         </div>
@@ -1292,6 +1300,8 @@
 <script type="text/javascript" src="./bootstrap/js/bootstrap.min.js"></script>
 <script type="text/javascript" src="data.js"></script>
 <script>
+
+	$('#infoBox').hide();
 	// --------设置阶段-------------
 	function changePart(){
 		$('.container').hide();
@@ -1302,28 +1312,7 @@
 	manActCurDay = 1;
 	manActCurActId = '';
 	manActCurActData = {};
-	// 最近活动_显示已选择活动的阶段设置
-	function manAct_displayPartSet() {
-		// 更新已选的活动id
-		manAct_getSelectedActId();
-		if (manActCurActId == undefined){
 
-			$('#infoBox').show();
-			$('#infoContent').html('提示: 最近没有活动!');
-			return;
-		}
-		// 隐藏活动选框
-		$('#selectManAct').hide();
-		// 设置活动名
-		$('#manActName').html(manActDatas[manActCurActId].name);
-
-		// 显示阶段设置
-		$('#manActSetPart').show();
-		// 活动目前天数
-		manActCurDay = 0;
-
-		manAct_SetNextDay();
-	}
 	// 最近活动_得到用户选择的阶段数
 	function manAct_getPartNum() {
 		return parseInt($("#manAct_partNums").find("option:selected").val());
@@ -1387,7 +1376,9 @@
 		// 不是默认
 		if(manActCurDay != 0){
 			// 检测阶段数
+			console.log(partNums);
 			if(partNums == 0){
+				console.log('警告: 阶段数不能为0!');
 				$('#infoBox').show();
 				$('#infoContent').html('警告: 阶段数不能为0!');
 				return;
