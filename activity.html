@@ -9,13 +9,74 @@
 <div class="center-block">
 	<h1>活动安排	
 	<select id="changePart" onchange="changePart()" class="selectpicker" style="font-size:23px;font-weight: bold; float:right">
-						<option value="0" selected>设置阶段</option>
+						<option value="-1" selected>帮助说明</option>
+						<option value="0">设置阶段</option>
 						<option value="1">安排阶段</option>
 						<option value="2">预览阶段</option>
 	</select>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 </h1>
+
+	<div id="classes" class="container">
+		<h2>第一步: 确定活动开展时间, 单(双)周, 星期几, 一共有多少阶段(班), 每个阶段(班)的开始结束时间</h2><br>
+		如: 红会于本周(<b>单</b>周)的<b>星期三</b>开展一个活动, 一共<b>六</b>个阶段<br>
+		1)	第一阶段: 07:55-09:40<br>
+		2)	第二阶段: 09:40-10:30<br>
+		3)	第三阶段: 10:30-11:50<br>
+		4)	第四阶段: 11:50-13:10<br>
+		5)	第五阶段: 13:10-14:30<br>
+		6)	第六阶段: 14:30-15:50<br>
+		<img src="./images/01.jpg">
+		<h3>设置网页如下</h3>
+		<img src="./images/02.png">
+		<h3>点击<span style="color:red">"确定阶段设置"</span>便可进入下一步</h3>
+		<h3>注意: 不要选择了阶段, 却在没设置时间前, 点击"确定阶段设置"</h3>
+		<h3>&nbsp;&nbsp;&nbsp;每个阶段的结束时间必须 大于 开始时间</h3>
+		<h3>&nbsp;&nbsp;&nbsp;阶段n的开始时间必须 大于或等于 阶段n-1的结束时间</h3>
+
+		<hr>
+		<h2>第二步: 根据候选人员为各阶段设置正式人员</h2><br>
+		<h3>选择: 时间优先级 性别 年级, 可对人员进行排序</h3>
+		<img src="./images/03.png"><br><br>
+		<p><span style="color:red">时间优先级</span>: 时间最充裕度</p>
+		<p>如: 阶段:09:00~10:00</p>
+		<p>小明有一段空闲时间, 08:30~10:30, 那么他的时间优先级是60min</p>
+		<p>小绿有一段空闲时间, 08:00~11:00, 那么他的时间优先级是120min</p>
+		<p>那么, 就会优先把小明排在前面</p><br>
+		
+		<p><span style="color:red">性别</span>: 优先排男生</p><br>
+		<p><span style="color:red">性别</span>: 优先大一,次之大二,最后大三</p>
+		
+		<h3>注意: 排序是实时更新的</h3>
+		<hr>
+		<h3>决定候选人员</h3>
+		<h3>候选人栏中, 所有绿色背景的都是可以被安排的</h3>
+		<img src="./images/04.png"><br><br>
+		<h3>点击<b>"翁某某"</b>后, 便会变成白色背景(已被安排为某阶段的正式人员), 进入到该阶段的正式人员栏中(背景为橘色), 并且在其它阶段的候选栏中, 他也会变成白色背景</h3>
+		<img src="./images/05.png"><br><br>
+		<h3>点击正式人员中<b>"翁某某"</b>后, 该正式人员会消失在正式人员栏, 且所有阶段的候选栏中, 他恢复为可选状态(绿色)</h3>
+		<img src="./images/06.png"><br><br>
+		
+		<h3>鼠标移至任何人上方, 详情都会更新该人的信息</h3>
+		<img src="./images/07.png"><br><br>
+		<img src="./images/08.png"><br><br>
+		<h3>为所有阶段设置好正式人后, 点击<span style="color:red">"预览人员"</span>便可进入下一步</h3>
+		<hr>
+		<h2>第二步: 预览阶段</h2>
+		<h3>在此阶段, 可以预览你设置的工作人员,目前没有卵用!</h3>
+		<img src="./images/09.png"><br><br>
+		<hr>
+		<h2>其它: 阶段切换</h2>
+		<h3>此外, 任意时候, 你都可以在右上角可以切换阶段</h3>
+		<h3>仅是切换, 数据不会实时更新, 你得点击"确定"按纽, 才会更新数据</h3>
+		<h3>也不要做切回当前阶段的事, 没用的!</h3>
+		<img src="./images/10.png"><br>
+		<br>
+		<br>
+		<span onclick="javascript:$('#classes').hide();$('#manActSetPart').show();" class="btn btn-md btn-warning center-block">开始安排人员</span>
+	</div>
+	
 	<!--活动安排 设置阶段-->
-	<div id="manActSetPart" class="container">
+	<div id="manActSetPart" class="container" style="display:none;">
 		<table class="table table-responsive table-hover table-bordered table-condensed text-center">
 			<tr>
 				<td colspan="3">
@@ -1235,7 +1296,7 @@
 	function changePart(){
 		$('.container').hide();
 		var tar = $("#changePart").find("option:selected").val()
-		partDi = {'0':'manActSetPart','1':'manActDecPart','2':'manActViewResult',};
+		partDi = {'-1':'classes', '0':'manActSetPart','1':'manActDecPart','2':'manActViewResult',};
 		$('#'+partDi[tar]).show();
 	}
 	manActCurDay = 1;
@@ -1391,7 +1452,6 @@
 		for(var workPart = 1; workPart <= manActCurActData[1]['阶段数']; workPart++) {
 			var begTimeM = manActCurActData[1]['阶段'+workPart]['beg'];
 			var endTimeM = manActCurActData[1]['阶段'+workPart]['end'];
-			console.log('第'+workPart+'阶段!')
 			// 遍历工作人员
 			for(var i = 0; i < data.length; i++) {
 				var m = data[i];
@@ -1401,7 +1461,6 @@
 					var begOfPartFree = m.free[typeOfWeek][dayOfWeek][partOfDay_i][0];
 					var endOfPartFree = m.free[typeOfWeek][dayOfWeek][partOfDay_i][1];
 					if(begOfPartFree <= begTimeM && endTimeM <= endOfPartFree) {
-						console.log(m.name+'有空!');
 						var di = {
 						'name':m.name, 
 						'no':m.id, 
@@ -1490,19 +1549,19 @@
 				
 				// 正常状态
 				if(curPartCan.select == 0){
-					var can_event = ' onclick="manAct_select('+decideCurDay+', '+part+', '+curPartCan.no+')" ';
-					// 出现候选阶段(不可添加为正式人员)
+					var can_event = ' onclick="manAct_select('+decideCurDay+', '+part+', \''+curPartCan.no+'\')" ';
+					// 出现候选阶段(可添加为正式人员)
 					canStr += '<span '+mouse_event+can_event+'class="btn btn-sm btn-success">'+curPartCan.name+'</span> ';
 				// 此阶段被挑选时(不可添加为正式人员)
 				}else if (curPartCan.select == 1){
 					// 出现在正式及候选阶段
-					var off_event = ' onclick="manAct_unselect('+part+', '+curPartCan.no+')" ';
+					var off_event = ' onclick="manAct_unselect('+part+', \''+curPartCan.no+'\')" ';
 					canStr += '<span '+mouse_event+'class="btn btn-sm btn-default">'+curPartCan.name+'</span> ';
 					offStr += '<span '+mouse_event+off_event+'class="btn btn-sm btn-warning">'+curPartCan.name+'</span> ';
 				// 在其它阶段被挑选了
 				}else if (curPartCan.select == -1){
 					// 出现在候选阶段(不可添加为正式人员)
-					var off_event = ' onclick="manAct_unselect('+part+', '+curPartCan.no+')" ';
+					var off_event = ' onclick="manAct_unselect('+part+', \''+curPartCan.no+'\')" ';
 					canStr += '<span '+mouse_event+'class="btn btn-sm btn-default">'+curPartCan.name+'</span> ';
 				}
 			}
@@ -1512,7 +1571,6 @@
 	}
 	// 决定阶段人员_你被选中了
 	function manAct_select(dayId, partId, no){
-		console.log(partId+"  "+no);
 		// select:0 正常;  1: 此阶段选中;  -1: 其它阶段选中
 		var curDayCan = manActCurActData[1];
 		// 遍历该天所有阶段
@@ -1522,7 +1580,6 @@
 				curPartCan = curDayCan['阶段'+part]['can'][canId];
 				// 目标学号
 				if(curPartCan['no'] == no){
-					console.log(part+" "+no+"状态: "+curPartCan['select']);
 					// 目标阶段
 					if(part == partId){
 						if(curPartCan['select'] == 0) {
@@ -1531,7 +1588,6 @@
 					} else { // 非目标阶段
 						curPartCan['select'] = -1;
 					}
-					console.log(part+" "+no+"状态: "+curPartCan['select']);
 				}
 
 			}
