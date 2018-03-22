@@ -1008,7 +1008,7 @@
 			<span><input name="sort" type="radio" value="sex"           >性别</span>
 			<span><input name="sort" type="radio" value="grade"         >年级</span>
 		</p>
-		<p>详情: <span id="memDetail"></span></p>
+		<p>详情: <span id="memDetail" style="font-weight:bold"></span></p>
 		<table class="table table-responsive table-hover table-bordered table-condensed">
 			<thead>
 			<tr>
@@ -1375,7 +1375,13 @@
 
 	}
 	function m2h(m) {
-		return parseInt(m/60)+':'+m%60;
+		var H = ""+parseInt(m/60);
+		if(H.length == 1)
+			H = "0"+H;
+		var M = ""+m%60;
+		if(M.length == 1)
+			M = "0"+M;
+		return H+':'+M;
 	}
 	
 	function makeCandiate(){
@@ -1385,6 +1391,7 @@
 		for(var workPart = 1; workPart <= manActCurActData[1]['阶段数']; workPart++) {
 			var begTimeM = manActCurActData[1]['阶段'+workPart]['beg'];
 			var endTimeM = manActCurActData[1]['阶段'+workPart]['end'];
+			console.log('第'+workPart+'阶段!')
 			// 遍历工作人员
 			for(var i = 0; i < data.length; i++) {
 				var m = data[i];
@@ -1394,7 +1401,7 @@
 					var begOfPartFree = m.free[typeOfWeek][dayOfWeek][partOfDay_i][0];
 					var endOfPartFree = m.free[typeOfWeek][dayOfWeek][partOfDay_i][1];
 					if(begOfPartFree <= begTimeM && endTimeM <= endOfPartFree) {
-					
+						console.log(m.name+'有空!');
 						var di = {
 						'name':m.name, 
 						'no':m.id, 
@@ -1471,7 +1478,6 @@
 			for(var canId = 0, curPartCan; canId < curDayCan['阶段'+part]['can'].length; canId++){
 				// 当前候选人
 				curPartCan = curDayCan['阶段'+part]['can'][canId];
-				
 				// 当前候选人的详情提示
 				var tipId = decideCurDay+'_'+part+'_'+curPartCan.no;
 				var tip = '';
@@ -1481,15 +1487,23 @@
 
 				// 添加至提示字典
 				tipDi[tipId] = tip;
-
-				// 不是候选人
-				if(curPartCan.select != 1){
+				
+				// 正常状态
+				if(curPartCan.select == 0){
 					var can_event = ' onclick="manAct_select('+decideCurDay+', '+part+', '+curPartCan.no+')" ';
+					// 出现候选阶段(不可添加为正式人员)
 					canStr += '<span '+mouse_event+can_event+'class="btn btn-sm btn-success">'+curPartCan.name+'</span> ';
-				} else {
+				// 此阶段被挑选时(不可添加为正式人员)
+				}else if (curPartCan.select == 1){
+					// 出现在正式及候选阶段
 					var off_event = ' onclick="manAct_unselect('+part+', '+curPartCan.no+')" ';
 					canStr += '<span '+mouse_event+'class="btn btn-sm btn-default">'+curPartCan.name+'</span> ';
 					offStr += '<span '+mouse_event+off_event+'class="btn btn-sm btn-warning">'+curPartCan.name+'</span> ';
+				// 在其它阶段被挑选了
+				}else if (curPartCan.select == -1){
+					// 出现在候选阶段(不可添加为正式人员)
+					var off_event = ' onclick="manAct_unselect('+part+', '+curPartCan.no+')" ';
+					canStr += '<span '+mouse_event+'class="btn btn-sm btn-default">'+curPartCan.name+'</span> ';
 				}
 			}
 			$('#'+part+'_trOff').html(offStr);
@@ -1498,8 +1512,8 @@
 	}
 	// 决定阶段人员_你被选中了
 	function manAct_select(dayId, partId, no){
-
-	// select:0 正常;  1: 此阶段选中;  -1: 其它阶段选中
+		console.log(partId+"  "+no);
+		// select:0 正常;  1: 此阶段选中;  -1: 其它阶段选中
 		var curDayCan = manActCurActData[1];
 		// 遍历该天所有阶段
 		for(var part = 1; part <= curDayCan['阶段数']; part++){
@@ -1508,13 +1522,16 @@
 				curPartCan = curDayCan['阶段'+part]['can'][canId];
 				// 目标学号
 				if(curPartCan['no'] == no){
+					console.log(part+" "+no+"状态: "+curPartCan['select']);
 					// 目标阶段
 					if(part == partId){
-						if(curPartCan['select'] == 0)
+						if(curPartCan['select'] == 0) {
 							curPartCan['select'] = 1;
+						}
 					} else { // 非目标阶段
 						curPartCan['select'] = -1;
 					}
+					console.log(part+" "+no+"状态: "+curPartCan['select']);
 				}
 
 			}
@@ -1525,6 +1542,7 @@
 	// 决定阶段人员_取消选择
 	function manAct_unselect(dayId, no){
 
+		// select:0 正常;  1: 此阶段选中;  -1: 其它阶段选中
 		var curDayCan = manActCurActData[1];
 		// 遍历该天所有阶段
 		for(var part = 1; part <= curDayCan['阶段数']; part++){
@@ -1587,7 +1605,7 @@
 			$('.Day'+day).hide();
 		}
 	}
-
+	
 </script>
 
 </body>
