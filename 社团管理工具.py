@@ -1,4 +1,3 @@
-# encoding: utf-8
 import os
 import time
 import traceback
@@ -21,14 +20,14 @@ except:
     import xlrd
     import xlwt
 
-
 # 分钟转时间
 def m2h(minutes):
     """
     :param minutes: int - 分钟 - 61
     :return:        str - 分钟对应的时间 - '01:01'
     """
-    return '{0:02d}:{1:02d}'.format(minutes//60, minutes%60)
+    return '{0:02d}:{1:02d}'.format(minutes // 60, minutes % 60)
+
 # 时间转分钟
 def h2m(time):
     """
@@ -44,7 +43,6 @@ def h2m(time):
 def fid(members, name):
     """
     在members中找名为name的学生, 返回下标
-
     :param members: list - 学生数组
     :param name:    str  - 要找学生的姓名
     :return:        int  - 下标
@@ -55,8 +53,8 @@ def fid(members, name):
         # 从首/末两端比较姓名
         if members[n].name == name:
             return n
-        elif members[-n-1].name == name:
-            return len(members)-n-1
+        elif members[-n - 1].name == name:
+            return len(members) - n - 1
     # 找不到
     return None
 
@@ -78,7 +76,6 @@ def readXlsFile(fileName):
     except:
         error('警告: {} 读取失败!'.format(fileName))
 
-
 # 根据list, 输出名为 xlsName 的xls文件
 def outputXLS(xlsName, List):
     wbook = xlwt.Workbook()
@@ -94,7 +91,8 @@ def outputXLS(xlsName, List):
             # 设置列的宽度
             wsheet.col(0).width = 2800
             for colId in range(1, len(List[1])):
-                wsheet.col(colId).width= 6000
+                wsheet.col(colId).width = 6000
+            xlsName = '无课表/'+xlsName
 
         wbook.save(xlsName)
     except PermissionError:
@@ -109,7 +107,7 @@ def outputXLS(xlsName, List):
                 # 设置列的宽度
                 wsheet.col(0).width = 3000
                 for colId in range(1, len(List[1])):
-                    wsheet.col(colId).width= 5800
+                    wsheet.col(colId).width = 5800
         except:
             print('警告: 无法保存 {}!'.format(xlsName))
 
@@ -130,75 +128,10 @@ class Club:
             # 从首/末两端比较姓名
             if self.members[n].name == name:
                 return n
-            elif self.members[-(n+1)].name == name:
+            elif self.members[-(n + 1)].name == name:
                 return len(self.members) - n - 1
         # 找不到
         return None
-
-    # 添加成员
-    def addMember(self):
-        print('\n-----------')
-        print('提示: 输入 break 时, 退出添加\n')
-        while True:
-            tmpMem = Member()
-            tmpMem.name = input('姓名: ')
-            if tmpMem.name == 'break':
-                break
-            tmpMem.sex = input('性别: ')
-            if tmpMem.sex == 'break':
-                break
-            tmpMem.phoNum = input('手机: ')
-            if tmpMem.phoNum == 'break':
-                break
-            tmpMem.adr = input('籍贯: ')
-            if tmpMem.adr == 'break':
-                break
-            tmpMem.dept = input('部门: ')
-            if tmpMem.dept == 'break':
-                break
-            tmpMem.job = input('职务: ')
-            if tmpMem.job == 'break':
-                break
-            tmpMem.id = input('学号: ')
-            if tmpMem.id == 'break':
-                break
-            tmpMem.squad = input('班级: ')
-            if tmpMem.squad == 'break':
-                break
-            tmpMem.grade = input('年级: ')
-            if tmpMem.grade == 'break':
-                break
-            tmpMem.buld = input('楼栋: ')
-            if tmpMem.buld == 'break':
-                break
-            tmpMem.dorPla = input('门牌: ')
-            if tmpMem.dorPla == 'break':
-                break
-            tmpMem.buld = tmpMem.buld.replace('栋', '')
-            # 在刚多出的位置, 添加 tmpMem 到 members
-            self.members.append(tmpMem)
-            print('提示: 成功添加 ' + tmpMem.name)
-            print()
-        input('\n提示: 请回车以继续!')
-        print('-------------\n')
-
-    # 移除成员
-    def delMember(self):
-        print('\n-----------')
-        print('提示: 输入 break 时, 退出移除\n')
-        while True:
-            rmStuName = input('姓名: ')
-            if rmStuName == 'break':
-                break
-            index = self.fid(rmStuName)
-            if index != None:
-                del self.members[index]
-                print('提示: 成功移除 ' + rmStuName)
-            else:
-                print('警告: 查无"' + rmStuName + '"')
-            print()
-        input('提示: 请回车以继续!')
-        print('-------------\n')
 
     # 浏览成员
     def browMember(self):
@@ -236,11 +169,13 @@ class Club:
                         if n == 1:
                             if deptKey != '理事会':
                                 l_xlsAdreBok.append([])
-                            l_xlsAdreBok.append([m.dept, m.job, m.name, m.sex, m.id, m.longPhoNum, m.shortPhoNum, m.adr, m.buld + m.dorPla])
-                            n = n + 1
+                            l_xlsAdreBok.append([m.dept, m.job, m.name, m.sex, m.id, m.longPhoNum, m.shortPhoNum, m.adr,
+                                                 m.buld + m.dorPla])
+                            n += 1
                         else:
-                            l_xlsAdreBok.append(['', m.job, m.name, m.sex, m.id, m.longPhoNum, m.shortPhoNum, m.adr, m.buld + m.dorPla])
-                            n = n + 1
+                            l_xlsAdreBok.append(
+                                ['', m.job, m.name, m.sex, m.id, m.longPhoNum, m.shortPhoNum, m.adr, m.buld + m.dorPla])
+                            n += 1
             try:
                 os.remove(data.xls_AddressBbook.replace('xlsx', '备份').replace('xls', '备份'))
             except:
@@ -262,11 +197,13 @@ class Club:
         def makeXlsSch(xlsSchName, nameList):
             # 将二维列表转置
             def reSetXY(List):
-                newList = [['', '', '', '', '', '', ''] for _ in range(5)]
+                # 多少小节
+                part_num = 7
+                newList = [['', '', '', '', '', '', ''] for _ in range(part_num)]
                 # 7天
                 for x in range(7):
-                    # 每天5节
-                    for y in range(5):
+                    # 每天7节
+                    for y in range(part_num):
                         newList[y][x] = List[x][y]
                 return newList
 
@@ -274,56 +211,45 @@ class Club:
             l_xlsSch = [
                 [xlsSchName.replace('.xls', '') + '_单周'],  # 标题
                 [[''], ['星期一'], ['星期二'], ['星期三'], ['星期四'], ['星期五'], ['星期六'], ['星期日']],
-                [['第一大节\n8:10-9:30'], [''], [''], [''], [''], [''], [''], [''], ['']],
-                [['第二大节\n9:50-12:00'], [''], [''], [''], [''], [''], [''], [''], ['']],
-                [['第三大节\n14:00-16:10'], [''], [''], [''], [''], [''], [''], [''], ['']],
-                [['第四大节\n16:40-18:00'], [''], [''], [''], [''], [''], [''], [''], ['']],
-                [['第五大节\n19:00-20:20'], [''], [''], [''], [''], [''], [''], [''], ['']],
+                [['第1、2节\n08:10-09:30'], [''], [''], [''], [''], [''], [''], [''], ['']],
+                [['第3、4节\n09:50-11:10'], [''], [''], [''], [''], [''], [''], [''], ['']],
+                [['第5节\n11:20-12:00'], [''], [''], [''], [''], [''], [''], [''], ['']],
+                [['第6、7节\n14:00-15:20'], [''], [''], [''], [''], [''], [''], [''], ['']],
+                [['第8节\n15:30-16:10'], [''], [''], [''], [''], [''], [''], [''], ['']],
+                [['第9、10节\n16:40-18:00'], [''], [''], [''], [''], [''], [''], [''], ['']],
+                [['第11、12节\n19:00-20:20'], [''], [''], [''], [''], [''], [''], [''], ['']],
                 [''],
                 [xlsSchName.replace('.xls', '') + '_双周'],  # 标题
                 [[''], ['星期一'], ['星期二'], ['星期三'], ['星期四'], ['星期五'], ['星期六'], ['星期日']],
-                [['第一大节\n8:10-9:30'], [''], [''], [''], [''], [''], [''], [''], ['']],
-                [['第二大节\n9:50-12:00'], [''], [''], [''], [''], [''], [''], [''], ['']],
-                [['第三大节\n14:00-16:10'], [''], [''], [''], [''], [''], [''], [''], ['']],
-                [['第四大节\n16:40-18:00'], [''], [''], [''], [''], [''], [''], [''], ['']],
-                [['第五大节\n19:00-20:20'], [''], [''], [''], [''], [''], [''], [''], ['']]
+                [['第1、2节\n08:10-09:30'], [''], [''], [''], [''], [''], [''], [''], ['']],
+                [['第3、4节\n09:50-11:10'], [''], [''], [''], [''], [''], [''], [''], ['']],
+                [['第5节\n11:20-12:00'], [''], [''], [''], [''], [''], [''], [''], ['']],
+                [['第6、7节\n14:00-15:20'], [''], [''], [''], [''], [''], [''], [''], ['']],
+                [['第8节\n15:30-16:10'], [''], [''], [''], [''], [''], [''], [''], ['']],
+                [['第9、10节\n16:40-18:00'], [''], [''], [''], [''], [''], [''], [''], ['']],
+                [['第11、12节\n19:00-20:20'], [''], [''], [''], [''], [''], [''], [''], ['']],
             ]
             schList = []
+            name = ''
             try:
                 for name in nameList:
-                    schList.append([self.members[self.fid(name)].name, reSetXY(self.members[self.fid(name)].schedule[0]),
-                            reSetXY(self.members[self.fid(name)].schedule[1])])
-                #schList = [[self.members[self.fid(name)].name, reSetXY(self.members[self.fid(name)].schedule[0]),
-                #            reSetXY(self.members[self.fid(name)].schedule[1])] for name in nameList]
+                    schList.append(
+                        [self.members[self.fid(name)].name, reSetXY(self.members[self.fid(name)].schedule[0]),
+                         reSetXY(self.members[self.fid(name)].schedule[1])])
             except:
                 error('\n警告: {0} 的课表制作失败!\n可能原因: \n\t1.没有{0}的课表! \n\t2.{0}的课表格式不正确!\n\t3.{0}使用了别人的课表, 缺没改名字!\n解决方法: 让{0}重新发送从教务系统下载的课表!'.format(name))
 
             for mSchList in schList:
                 mName = mSchList[0]
-                mSch_s = mSchList[1]
-                mSch_d = mSchList[2]
-                # 单周部分
-                for index_p, part in enumerate(mSch_s):
-                    # print('第',index_p,'部分')
-                    for index_wd, weekday in enumerate(part):
-                        # print('星期',index_wd,weekday)
-                        if weekday == '0':  # 无课
-                            if l_xlsSch[index_p + 2][index_wd + 1][0] == '':
-                                l_xlsSch[index_p + 2][index_wd + 1][0] = mName
-                            else:
-                                l_xlsSch[index_p + 2][index_wd + 1][0] = l_xlsSch[index_p + 2][index_wd + 1][
-                                                                             0] + '、' + mName
-                # 双周部分
-                for index_p, part in enumerate(mSch_d):
-                    # print('第',index_p,'部分')
-                    for index_wd, weekday in enumerate(part):
-                        # print('星期',index_wd,weekday)
-                        if weekday == '0':  # 无课
-                            if l_xlsSch[index_p + 10][index_wd + 1][0] == '':
-                                l_xlsSch[index_p + 10][index_wd + 1][0] = mName
-                            else:
-                                l_xlsSch[index_p + 10][index_wd + 1][0] = l_xlsSch[index_p + 10][index_wd + 1][
-                                                                                 0] + '、' + mName
+                row_start = (2, 12)
+                for week in range(2):
+                    for index_p, part in enumerate(mSchList[week+1]):
+                        for index_wd, weekday in enumerate(part):
+                            if weekday == '0':  # 无课
+                                if l_xlsSch[index_p + row_start[week]][index_wd + 1][0] == '':
+                                    l_xlsSch[index_p + row_start[week]][index_wd + 1][0] = mName
+                                else:
+                                    l_xlsSch[index_p + row_start[week]][index_wd + 1][0] += '、' + mName
 
             # 输出课表
             outputXLS(xlsSchName.replace('xlsx', 'xls'), l_xlsSch)
@@ -435,10 +361,10 @@ class Club:
             li.append(m.toJson())
 
         with open('data.js', 'w', encoding='utf-8') as data:
-            data.write('var data = '+str(li))
-        cm = '''start activity.html'''.format()
-        os.system(cm)
-        input('回车以继续\n')
+            data.write('var data = ' + str(li))
+        cmd = '''start activity.html'''
+        os.system(cmd)
+        input('提示: 回车以继续\n')
 
 # 定义member类
 class Member:
@@ -465,46 +391,61 @@ class Member:
         print('短号: {0:9s} \t长号: {1:9s}'.format(self.shortPhoNum, self.longPhoNum))
         print('部门: {0:6s} \t职务: {1:9s}'.format(self.dept, self.job))
         print('楼栋: {0:8s} \t门牌: {1:9s}'.format(self.buld, self.dorPla))
+
     def toJson(self):
         di = {}
         di['name'] = self.name  # 姓名
-        di['grade'] = self.grade # 年级
-        di['job'] = self.job # 职务
+        di['grade'] = self.grade  # 年级
+        di['job'] = self.job  # 职务
         di['id'] = self.id  # 学号
         di['sex'] = self.sex  # 性别
-        di['dept'] = self.dept # 部门
-        di['longPhoNum'] = self.longPhoNum # 长号
+        di['dept'] = self.dept  # 部门
+        di['longPhoNum'] = self.longPhoNum  # 长号
         di['shortPhoNum'] = self.shortPhoNum  # 短号
         di['buld'] = self.buld  # 楼栋
         di['dorPla'] = self.dorPla  # 门牌号
-        di['adr'] = self.adr # 籍贯
+        di['adr'] = self.adr  # 籍贯
+
+        # 每节课的时间段
+        classTimeMinute = (
+            (h2m('07:00'), h2m('07:45')),  # 早读
+            (h2m('08:10'), h2m('09:30')),  # 12
+            (h2m('09:50'), h2m('11:10')),  # 34
+            (h2m('11:20'), h2m('12:00')),  # 5
+            (h2m('14:00'), h2m('15:20')),  # 67
+            (h2m('15:30'), h2m('16:10')),  # 8
+            (h2m('16:40'), h2m('18:00')),  # 910
+            (h2m('19:00'), h2m('20:20')),  # 1112
+        )
         # 默认空闲区间: 早上6点到晚上23点
-        classTimeMinute = {0:[7*60+10, 7*60+50], 1:[490, 570], 2:[590, 720], 3:[840, 970], 4:[1000, 1080], 5:[1140, 1220]}
-        li = [
-            [[360, 1380], [360, 1380], [360, 1380], [360, 1380], [360, 1380], [360, 1380], [360, 1380]] # 单周,
-            ,[[360, 1380], [360, 1380], [360, 1380], [360, 1380], [360, 1380], [360, 1380], [360, 1380]] # 双周
+        default_free_time = [
+            [[360, 1380], [360, 1380], [360, 1380], [360, 1380], [360, 1380], [360, 1380], [360, 1380]]  # 单周
+            , [[360, 1380], [360, 1380], [360, 1380], [360, 1380], [360, 1380], [360, 1380], [360, 1380]]  # 双周
         ]
-        # 周末没有早读
-        for weektype in range(2):
-            for workday in li[weektype][0:5:]:
-                workday += classTimeMinute[0][::]
+        # 大一周末没早读
+        if self.grade == '大一':
+            for weektype in range(2):
+                for workday in default_free_time[weektype][0:5:]:
+                    workday += classTimeMinute[0][::]
 
         for weekType, timeList in enumerate(self.schedule):
             for dayId, day in enumerate(timeList):
                 for partId, partStatue in enumerate(day):
-                    classTimeId = partId+1
-                    # 无课
+                    classTimeId = partId + 1
+                    # 有课
                     if partStatue == '1':
-                        li[weekType][dayId] += classTimeMinute[classTimeId]
-                li[weekType][dayId].sort()
-                tmp = li[weekType][dayId][::]
-                #print(tmp)
-                li[weekType][dayId] = [[tmp[i], tmp[i+1]] for i in range(0, len(tmp), 2)]
-                
-        di['free'] = li
+                        default_free_time[weekType][dayId] += classTimeMinute[classTimeId]
+                default_free_time[weekType][dayId].sort()
+                tmp = default_free_time[weekType][dayId][::]
+
+                default_free_time[weekType][dayId] = [[tmp[i], tmp[i + 1]] for i in range(0, len(tmp), 2)]
+
+        di['free'] = default_free_time
         return di
+
+
 # 定义数据类 数据加载等
-class loadData:
+class LoadData:
     # 初始化
     def __init__(self):
         # xls_AddressBbook  # 通讯录.xls
@@ -517,6 +458,10 @@ class loadData:
         # 文件读取状态
         self.status_loadAdrBok = False
         self.status_loadSch = False
+
+        # 创建无课表输出目录
+        if not os.path.exists('无课表'):
+            os.mkdir('无课表')
 
         # 获取数据文件名
         self.getDataFileNname()
@@ -568,7 +513,7 @@ class loadData:
 
             # 从数据起始行中, 找出成员属性 在表格 对应的列下标
             c_name = c_job = c_id = c_sex = c_longPhoNum = c_dormi = -1
-            d_info = {'职务':-1, '姓名':-1, '性别':-1, '学号':-1, '长号':-1, '宿舍':-1}
+            d_info = {'职务': -1, '姓名': -1, '性别': -1, '学号': -1, '长号': -1, '宿舍': -1}
             for index, ele in enumerate(l_AdrBbk[0]):
                 if '职务' in ele:
                     d_info['职务'] = index
@@ -601,9 +546,9 @@ class loadData:
                     each_dept = row[0]
                 # 根据学号判断年级
                 preNo = row[d_info['学号']][0:2]
-                begin = time.mktime(time.strptime("09 10 20{}".format(preNo),"%m %d %Y"))
+                begin = time.mktime(time.strptime("09 10 20{}".format(preNo), "%m %d %Y"))
                 now = time.time()
-                year = (now-begin)/60/60/24/365
+                year = (now - begin) / 60 / 60 / 24 / 365
                 if year < 1:
                     m.grade = '大一'
                 elif year < 2:
@@ -663,39 +608,97 @@ class loadData:
                     try:
                         tmpMem = members[fid(members, stuName)]
                         # 设置默认单双周课表数字
-                        tmpMem.schedule = [[], []]
+                        schedule = [[], []]
                         # 单周
-                        tmpMem.schedule[0] = [[], [], [], [], [], [], []]
+                        schedule[0] = [[], [], [], [], [], [], []]
                         # 双周
-                        tmpMem.schedule[1] = [[], [], [], [], [], [], []]
+                        schedule[1] = [[], [], [], [], [], [], []]
+                        # 周一 - 周五
+                        for day in range(7):
+                            # 每天五大节
+                            for bigpart in range(5):
+                                class_name = ''
+                                class_content = classes[bigpart][day + 1].strip('\n')
+                                # 三节大课-第二/三大节
+                                if bigpart == 1 or bigpart == 2:
+                                    # 双周有课
+                                    if '双周' in class_content:
+                                        # 课程名称
+                                        class_name = class_content.split('\n')[0]
 
-                        for index, type in enumerate(['single', 'double']):
-                            # 周一 - 周五
-                            for day in range(7):
-                                for bigpart in range(5):
-                                    if '双周' in classes[bigpart][day + 1]:
-                                        # print('双周有课')
-                                        if type == 'single':
-                                            tmpMem.schedule[index][day].append('0')
-                                            # print(members[fid(stuName)].schedule[index][day])
-                                            # input('single')
-                                        elif type == 'double':
-                                            tmpMem.schedule[index][day].append('1')
-                                            # print(members[fid(stuName)].schedule[index][day])
-                                            # input('double')
-                                    elif '单周' in classes[bigpart][day + 1]:
-                                        # print('单周有课')
-                                        if type == 'single':
-                                            tmpMem.schedule[index][day].append('1')
-                                            # input('single')
-                                        elif type == 'double':
-                                            tmpMem.schedule[index][day].append('0')
-                                            # input('double')
+                                        # 0:单周, 1:单周
+                                        schedule[0][day].append('0')
+                                        schedule[0][day].append('0')
+
+                                        # 检测是否为 三节大课
+                                        if class_name in self.three_class_names:
+                                            schedule[1][day].append('1')
+                                            schedule[1][day].append('1')
+                                        else:
+                                            schedule[1][day].append('1')
+                                            schedule[1][day].append('0')
+
+                                    # 单周有课
+                                    elif '单周' in class_content:
+                                        # 课程名称
+                                        class_name = class_content.split('\n')[0]
+
+                                        # 0:单周, 1:双周
+                                        schedule[1][day].append('0')
+                                        schedule[1][day].append('0')
+
+                                        # 检测是否为 三节大课
+                                        if class_name in self.three_class_names:
+                                            schedule[0][day].append('1')
+                                            schedule[0][day].append('1')
+                                        else:
+                                            schedule[0][day].append('1')
+                                            schedule[0][day].append('0')
+                                    # 单双周都有课
                                     elif classes[bigpart][day + 1] != ' ':
-                                        tmpMem.schedule[index][day].append('1')
+                                        # 课程名称
+                                        class_name = class_content.split('\n')[0]
+                                        # 检测是否为 三节大课
+                                        if class_name in self.three_class_names:
+                                            schedule[0][day].append('1')
+                                            schedule[0][day].append('1')
+                                            schedule[1][day].append('1')
+                                            schedule[1][day].append('1')
+                                        else:
+                                            schedule[0][day].append('1')
+                                            schedule[0][day].append('0')
+                                            schedule[1][day].append('1')
+                                            schedule[1][day].append('0')
+                                    # 无课
                                     else:
-                                        tmpMem.schedule[index][day].append('0')
+                                        schedule[0][day].append('0')
+                                        schedule[0][day].append('0')
+                                        schedule[1][day].append('0')
+                                        schedule[1][day].append('0')
+                                # 两节小课-第一/四/五
+                                else:
+                                    # 双周有课
+                                    if '双周' in class_content:
+                                        # 0:单周, 1:双周
+                                        schedule[0][day].append('0')
+                                        schedule[1][day].append('1')
+                                    # 双=单周有课
+                                    elif '单周' in class_content:
+                                        # 0:单周, 1:双周
+                                        schedule[0][day].append('1')
+                                        schedule[1][day].append('0')
+                                    # 单双周都有课
+                                    elif class_content != ' ':
+                                        schedule[0][day].append('1')
+                                        schedule[1][day].append('1')
+                                    # 无课
+                                    else:
+                                        schedule[0][day].append('0')
+                                        schedule[1][day].append('0')
+
+                        tmpMem.schedule = schedule
                     except:
+                        traceback.print_exc()
                         error('警告: 无法从{}中提取课表数字!'.format(TimeScheduleName))
                 else:
                     error('警告: 通讯录中找不到{}!'.format(stuName))
@@ -708,7 +711,14 @@ class loadData:
 
     # 从文件读取数据信息
     def loadDataFromFile(self):
-        # members = []   学生列表/数组
+
+        # 三节课的课程
+        try:
+            with open('三节大课.txt', 'r') as f:
+                self.three_class_names = f.read().split('\n')
+        except:
+            error('警告: 缺少数据文件"三节大课.txt"')
+
         # 有通讯录, 才能加载 课表数字/活动信息
         self.status_loadAdrBok, members = self.loadAddressBbook()  # 加载 通讯录 文件
         if self.status_loadAdrBok:
@@ -716,42 +726,36 @@ class loadData:
             self.status_loadSch, members = self.loadOfficalTimeSchedules(members)  # 加载 课表 文件
         return members
 
+
 # 程序头
 if __name__ == '__main__':
     # 红会类
-    redClub = Club()
+    red_club = Club()
     # 数据
-    data = loadData()
-    redClub.members = data.loadDataFromFile()
+    data = LoadData()
+    red_club.members = data.loadDataFromFile()
+
     while True:
         print('┏━━━━━┓')
         print('┃  社团管理┃')
-        print('┃1.添加成员┃')
-        print('┃2.移除成员┃')
-        print('┃3.浏览成员┃')
-        print('┃4.输出信息┃')
-        print('┃5.活动安排┃')
-        print('┃6.退出工具┃')
+        print('┃1.浏览成员┃')
+        print('┃2.输出信息┃')
+        print('┃3.活动安排┃')
+        print('┃4.退出工具┃')
         print('┗━━━━━┛')
         choice = input('选择: ')
-        while choice not in ['1', '2', '3', '4', '5', '6']:
+        while choice not in ['1', '2', '3', '4']:
             choice = input('选择: ')
 
         if choice == '1':
-            # 添加成员
-            redClub.addMember()
-        elif choice == '2':
-            # 删除成员
-            redClub.delMember()
-        elif choice == '3':
             # 浏览成员
-            redClub.browMember()
-        elif choice == '4':
+            red_club.browMember()
+        elif choice == '2':
             # 输出信息
-            redClub.outputMain()
-        elif choice == '5':
+            red_club.outputMain()
+        elif choice == '3':
             # 安排活动
-            redClub.arrnageAct()
-        elif choice == '6':
+            red_club.arrnageAct()
+        elif choice == '4':
             print('\n提示: 程序结束')
             break
