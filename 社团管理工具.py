@@ -714,7 +714,7 @@ class LoadData:
 
         # 三节课的课程
         try:
-            with open('三节大课.txt', 'r') as f:
+            with open('三节大课.txt', 'r', encoding='utf-8') as f:
                 self.three_class_names = f.read().split('\n')
         except:
             error('警告: 缺少数据文件"三节大课.txt"')
